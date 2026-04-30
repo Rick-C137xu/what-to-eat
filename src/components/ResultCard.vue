@@ -1,13 +1,10 @@
 <script setup>
+import FoodImage from './FoodImage.vue'
+import { navigateTo } from '../router/index.js'
+
 defineProps({
-  result: {
-    type: Object,
-    required: true,
-  },
-  favoriteIds: {
-    type: Array,
-    default: () => [],
-  },
+  result: { type: Object, required: true },
+  favoriteIds: { type: Array, default: () => [] },
 })
 
 defineEmits(['decide', 'reroll', 'eat', 'toggle-favorite', 'blacklist'])
@@ -29,16 +26,16 @@ defineEmits(['decide', 'reroll', 'eat', 'toggle-favorite', 'blacklist'])
     </div>
 
     <div v-else-if="result.main" class="recommend-stack">
-      <article class="food-card main-food">
-        <div class="food-emoji">{{ result.main.emoji }}</div>
+      <article class="food-card main-food clickable" @click="navigateTo(`/recipe/${result.main.id}`)">
+        <FoodImage :food="result.main" size="large" />
         <div class="food-content">
           <p class="card-label">主推荐</p>
           <h3>{{ result.main.name }}</h3>
           <p>{{ result.main.description }}</p>
           <div class="tag-row">
-            <span>{{ result.main.cuisine }}</span>
-            <span>{{ result.main.budget }}</span>
-            <span>{{ result.main.warmth }}</span>
+            <span>{{ result.main.tags.cuisine }}</span>
+            <span>{{ result.main.nutrition.calories }} kcal</span>
+            <span>{{ result.main.nutrition.protein }}g 蛋白质</span>
           </div>
         </div>
       </article>
@@ -46,26 +43,24 @@ defineEmits(['decide', 'reroll', 'eat', 'toggle-favorite', 'blacklist'])
       <div class="action-row">
         <button class="primary-button" type="button" @click="$emit('eat', result.main)">就吃这个</button>
         <button class="soft-button" type="button" @click="$emit('toggle-favorite', result.main)">
-          {{ favoriteIds.includes(result.main.id) ? '取消收藏' : '收藏' }}
+          {{ favoriteIds.includes(result.main.id) ? '取消收藏' : '❤ 收藏' }}
         </button>
         <button class="danger-button" type="button" @click="$emit('blacklist', result.main)">今天不吃</button>
       </div>
 
       <div v-if="result.alternatives.length" class="alternatives">
         <h3>备选</h3>
-        <article v-for="food in result.alternatives" :key="food.id" class="mini-food">
+        <article v-for="food in result.alternatives" :key="food.id" class="mini-food clickable" @click="navigateTo(`/recipe/${food.id}`)">
           <div>
             <strong>{{ food.emoji }} {{ food.name }}</strong>
             <p>{{ food.description }}</p>
           </div>
-          <div class="mini-actions">
+          <div class="mini-actions" @click.stop>
             <button class="text-button" type="button" @click="$emit('eat', food)">就吃</button>
             <button class="text-button" type="button" @click="$emit('toggle-favorite', food)">
               {{ favoriteIds.includes(food.id) ? '取消收藏' : '收藏' }}
             </button>
-            <button class="text-button muted-danger" type="button" @click="$emit('blacklist', food)">
-              今天不吃
-            </button>
+            <button class="text-button muted-danger" type="button" @click="$emit('blacklist', food)">今天不吃</button>
           </div>
         </article>
       </div>

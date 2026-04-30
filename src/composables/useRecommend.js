@@ -1,4 +1,4 @@
-import { foods } from '../data/foods.js'
+import { useUserStore } from '../stores/userStore.js'
 
 const EMPTY_RESULT = {
   main: null,
@@ -8,42 +8,33 @@ const EMPTY_RESULT = {
 }
 
 function toArray(value) {
-  if (value === undefined || value === null || value === '') {
-    return []
-  }
-
+  if (value === undefined || value === null || value === '') return []
   return Array.isArray(value) ? value : [value]
 }
 
 function toIdSet(items) {
-  return new Set(
-    toArray(items)
-      .map((item) => (typeof item === 'object' ? item.id : item))
-      .filter((id) => id !== undefined && id !== null),
-  )
+  return new Set(toArray(items).map((item) => (typeof item === 'object' ? item.id : item)).filter(Boolean))
 }
 
 function matchesAny(foodValues, selectedValues) {
   const selected = toArray(selectedValues)
-
-  if (selected.length === 0) {
-    return true
-  }
+  if (selected.length === 0) return true
 
   const values = toArray(foodValues)
   return selected.some((value) => values.includes(value))
 }
 
 function matchesFilter(food, filters = {}) {
+  const tags = food.tags || {}
   return (
-    matchesAny(food.meals, filters.meal || filters.meals) &&
-    matchesAny(food.scenes, filters.scene || filters.scenes) &&
-    matchesAny(food.moods, filters.mood || filters.moods) &&
-    matchesAny(food.cuisine, filters.cuisine) &&
-    matchesAny(food.budget, filters.budget) &&
-    matchesAny(food.warmth, filters.warmth) &&
-    (filters.spicy === undefined || food.spicy === filters.spicy) &&
-    (filters.vegetarian === undefined || food.vegetarian === filters.vegetarian)
+    matchesAny(tags.meal, filters.meal || filters.meals) &&
+    matchesAny(tags.scene, filters.scene || filters.scenes) &&
+    matchesAny(tags.mood, filters.mood || filters.moods) &&
+    matchesAny(tags.cuisine, filters.cuisine) &&
+    matchesAny(tags.budget, filters.budget === undefined ? undefined : Number(filters.budget)) &&
+    matchesAny(tags.warmth, filters.warmth) &&
+    (filters.spicy === undefined || tags.spicy === filters.spicy) &&
+    (filters.vegetarian === undefined || tags.vegetarian === filters.vegetarian)
   )
 }
 
@@ -54,20 +45,10 @@ function getWeightedFoods(candidates, favorites, recentEaten) {
   return candidates.map((food) => {
     let weight = food.baseWeight || 1
 
-    // 喜欢的食物提高出现概率，但不直接保证选中，保留一点随机感。
-    if (favoriteIds.has(food.id)) {
-      weight += 5
-    }
+    if (favoriteIds.has(food.id)) weight += 5
+    if (recentEatenIds.has(food.id)) weight *= 0.35
 
-    // 最近吃过的食物降低权重，避免连续几天反复推荐同一种。
-    if (recentEatenIds.has(food.id)) {
-      weight *= 0.35
-    }
-
-    return {
-      food,
-      weight: Math.max(weight, 0.1),
-    }
+    return { food, weight: Math.max(weight, 0.1) }
   })
 }
 
@@ -77,10 +58,7 @@ function pickWeightedFood(weightedFoods) {
 
   for (const item of weightedFoods) {
     randomWeight -= item.weight
-
-    if (randomWeight <= 0) {
-      return item.food
-    }
+    if (randomWeight <= 0) return item.food
   }
 
   return weightedFoods[weightedFoods.length - 1]?.food || null
@@ -92,14 +70,9 @@ function pickUniqueFoods(weightedFoods, count) {
 
   while (picked.length < count && pool.length > 0) {
     const food = pickWeightedFood(pool)
-
-    if (!food) {
-      break
-    }
+    if (!food) break
 
     picked.push(food)
-
-    // 每次抽中后从候选池移除，保证主推荐和备选不重复。
     pool = pool.filter((item) => item.food.id !== food.id)
   }
 
@@ -107,32 +80,21 @@ function pickUniqueFoods(weightedFoods, count) {
 }
 
 export function useRecommend() {
+  const userStore = useUserStore()
+
   function getRandomFood() {
-    const index = Math.floor(Math.random() * foods.length)
-    return foods[index]
+    const pool = userStore.allFoods.value
+    return pool[Math.floor(Math.random() * pool.length)]
   }
 
   function recommend(options = {}) {
-    const {
-      filters = {},
-      todayBlacklist = [],
-      favorites = [],
-      recentEaten = [],
-    } = options
-
+    const { filters = {}, todayBlacklist = [], favorites = [], recentEaten = [] } = options
     const blacklistIds = toIdSet(todayBlacklist)
+    const candidates = userStore.allFoods.value.filter((food) => matchesFilter(food, filters) && !blacklistIds.has(food.id))
 
-    // 先按用户筛选条件收窄范围，再排除今天已经明确不想吃的食物。
-    const candidates = foods.filter((food) => {
-      return matchesFilter(food, filters) && !blacklistIds.has(food.id)
-    })
+    if (candidates.length === 0) return EMPTY_RESULT
 
-    if (candidates.length === 0) {
-      return EMPTY_RESULT
-    }
-
-    const weightedFoods = getWeightedFoods(candidates, favorites, recentEaten)
-    const pickedFoods = pickUniqueFoods(weightedFoods, 3)
+    const pickedFoods = pickUniqueFoods(getWeightedFoods(candidates, favorites, recentEaten), 3)
 
     return {
       main: pickedFoods[0] || null,
@@ -142,8 +104,5 @@ export function useRecommend() {
     }
   }
 
-  return {
-    getRandomFood,
-    recommend,
-  }
+  return { getRandomFood, recommend }
 }

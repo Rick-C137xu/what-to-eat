@@ -1,22 +1,13 @@
 <script setup>
 const props = defineProps({
-  filters: {
-    type: Object,
-    required: true,
-  },
-  options: {
-    type: Object,
-    required: true,
-  },
+  filters: { type: Object, required: true },
+  options: { type: Object, required: true },
 })
 
 const emit = defineEmits(['update:filters', 'decide'])
 
 function updateFilter(key, value) {
-  emit('update:filters', {
-    ...props.filters,
-    [key]: value,
-  })
+  emit('update:filters', { ...props.filters, [key]: value })
 }
 </script>
 
@@ -32,12 +23,10 @@ function updateFilter(key, value) {
 
     <div class="filter-grid">
       <label class="field">
-        <span>餐次</span>
+        <span>餐段</span>
         <select :value="filters.meal" @change="updateFilter('meal', $event.target.value)">
           <option value="">都可以</option>
-          <option v-for="meal in options.meals" :key="meal.value" :value="meal.value">
-            {{ meal.label }}
-          </option>
+          <option v-for="meal in options.meals" :key="meal.value" :value="meal.value">{{ meal.label }}</option>
         </select>
       </label>
 
@@ -45,7 +34,7 @@ function updateFilter(key, value) {
         <span>场景</span>
         <select :value="filters.scene" @change="updateFilter('scene', $event.target.value)">
           <option value="">都可以</option>
-          <option v-for="scene in options.scenes" :key="scene" :value="scene">{{ scene }}</option>
+          <option v-for="scene in options.scenes" :key="scene.value" :value="scene.value">{{ scene.label }}</option>
         </select>
       </label>
 
@@ -53,15 +42,15 @@ function updateFilter(key, value) {
         <span>预算</span>
         <select :value="filters.budget" @change="updateFilter('budget', $event.target.value)">
           <option value="">都可以</option>
-          <option v-for="budget in options.budgets" :key="budget" :value="budget">{{ budget }}</option>
+          <option v-for="budget in options.budgets" :key="budget.value" :value="budget.value">{{ budget.label }}</option>
         </select>
       </label>
 
       <label class="field">
-        <span>心情</span>
+        <span>状态</span>
         <select :value="filters.mood" @change="updateFilter('mood', $event.target.value)">
           <option value="">都可以</option>
-          <option v-for="mood in options.moods" :key="mood" :value="mood">{{ mood }}</option>
+          <option v-for="mood in options.moods" :key="mood.value" :value="mood.value">{{ mood.label }}</option>
         </select>
       </label>
 
@@ -77,7 +66,7 @@ function updateFilter(key, value) {
         <span>温度</span>
         <select :value="filters.warmth" @change="updateFilter('warmth', $event.target.value)">
           <option value="">都可以</option>
-          <option v-for="warmth in options.warmth" :key="warmth" :value="warmth">{{ warmth }}</option>
+          <option v-for="warmth in options.warmth" :key="warmth.value" :value="warmth.value">{{ warmth.label }}</option>
         </select>
       </label>
     </div>

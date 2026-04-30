@@ -1,17 +1,10 @@
 <script setup>
+import { navigateTo } from '../router/index.js'
+
 defineProps({
-  favorites: {
-    type: Array,
-    default: () => [],
-  },
-  recentEaten: {
-    type: Array,
-    default: () => [],
-  },
-  todayBlacklist: {
-    type: Array,
-    default: () => [],
-  },
+  favorites: { type: Array, default: () => [] },
+  recentEaten: { type: Array, default: () => [] },
+  todayBlacklist: { type: Array, default: () => [] },
 })
 
 defineEmits(['toggle-favorite', 'remove-recent', 'remove-blacklist'])
@@ -31,7 +24,7 @@ defineEmits(['toggle-favorite', 'remove-recent', 'remove-blacklist'])
         <h3>收藏</h3>
         <p v-if="favorites.length === 0" class="muted-text">还没有收藏的食物。</p>
         <article v-for="food in favorites" :key="food.id" class="list-item">
-          <span>{{ food.emoji }} {{ food.name }}</span>
+          <button class="plain-link" type="button" @click="navigateTo(`/recipe/${food.id}`)">{{ food.emoji }} {{ food.name }}</button>
           <button class="text-button" type="button" @click="$emit('toggle-favorite', food)">取消收藏</button>
         </article>
       </div>
@@ -40,7 +33,7 @@ defineEmits(['toggle-favorite', 'remove-recent', 'remove-blacklist'])
         <h3>最近吃过</h3>
         <p v-if="recentEaten.length === 0" class="muted-text">吃过后会显示在这里。</p>
         <article v-for="food in recentEaten" :key="food.id" class="list-item">
-          <span>{{ food.emoji }} {{ food.name }}</span>
+          <button class="plain-link" type="button" @click="navigateTo(`/recipe/${food.id}`)">{{ food.emoji }} {{ food.name }}</button>
           <button class="text-button" type="button" @click="$emit('remove-recent', food)">移除</button>
         </article>
       </div>
@@ -49,7 +42,7 @@ defineEmits(['toggle-favorite', 'remove-recent', 'remove-blacklist'])
         <h3>今天不吃</h3>
         <p v-if="todayBlacklist.length === 0" class="muted-text">今天还没有排除任何食物。</p>
         <article v-for="food in todayBlacklist" :key="food.id" class="list-item">
-          <span>{{ food.emoji }} {{ food.name }}</span>
+          <button class="plain-link" type="button" @click="navigateTo(`/recipe/${food.id}`)">{{ food.emoji }} {{ food.name }}</button>
           <button class="text-button" type="button" @click="$emit('remove-blacklist', food)">移回</button>
         </article>
       </div>
