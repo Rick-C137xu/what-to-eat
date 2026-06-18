@@ -20,29 +20,65 @@ defineEmits(['toggle-favorite', 'remove-recent', 'remove-blacklist'])
     </div>
 
     <div class="list-grid">
+      <!-- Favorites column -->
       <div class="list-column">
-        <h3>收藏</h3>
-        <p v-if="favorites.length === 0" class="muted-text">还没有收藏的食物。</p>
+        <div class="list-column-header favorites">
+          <span class="col-dot"></span>
+          <h3>❤ 收藏</h3>
+          <span class="col-count">{{ favorites.length }}</span>
+        </div>
+
+        <div v-if="favorites.length === 0" class="column-empty">
+          <span class="empty-emoji">⭐</span>
+          <p>还没有收藏的食物</p>
+        </div>
+
         <article v-for="food in favorites" :key="food.id" class="list-item">
-          <button class="plain-link" type="button" @click="navigateTo(`/recipe/${food.id}`)">{{ food.emoji }} {{ food.name }}</button>
-          <button class="text-button" type="button" @click="$emit('toggle-favorite', food)">取消收藏</button>
+          <button class="plain-link" type="button" @click="navigateTo(`/recipe/${food.id}`)">
+            {{ food.emoji }} {{ food.name }}
+          </button>
+          <button class="text-button" type="button" @click="$emit('toggle-favorite', food)">取消</button>
         </article>
       </div>
 
+      <!-- Recent eaten column -->
       <div class="list-column">
-        <h3>最近吃过</h3>
-        <p v-if="recentEaten.length === 0" class="muted-text">吃过后会显示在这里。</p>
+        <div class="list-column-header recent">
+          <span class="col-dot"></span>
+          <h3>🕐 最近吃过</h3>
+          <span class="col-count">{{ recentEaten.length }}</span>
+        </div>
+
+        <div v-if="recentEaten.length === 0" class="column-empty">
+          <span class="empty-emoji">🍴</span>
+          <p>吃过后会显示在这里</p>
+        </div>
+
         <article v-for="food in recentEaten" :key="food.id" class="list-item">
-          <button class="plain-link" type="button" @click="navigateTo(`/recipe/${food.id}`)">{{ food.emoji }} {{ food.name }}</button>
+          <button class="plain-link" type="button" @click="navigateTo(`/recipe/${food.id}`)">
+            {{ food.emoji }} {{ food.name }}
+          </button>
           <button class="text-button" type="button" @click="$emit('remove-recent', food)">移除</button>
         </article>
       </div>
 
+      <!-- Today blacklist column -->
       <div class="list-column">
-        <h3>今天不吃</h3>
-        <p v-if="todayBlacklist.length === 0" class="muted-text">今天还没有排除任何食物。</p>
+        <div class="list-column-header blacklist">
+          <span class="col-dot"></span>
+          <h3>🚫 今天不吃</h3>
+          <span class="col-count">{{ todayBlacklist.length }}</span>
+        </div>
+
+        <div v-if="todayBlacklist.length === 0" class="column-empty">
+          <span class="empty-emoji">🙅</span>
+          <p>今天还没有排除的食物</p>
+        </div>
+
         <article v-for="food in todayBlacklist" :key="food.id" class="list-item">
-          <button class="plain-link" type="button" @click="navigateTo(`/recipe/${food.id}`)">{{ food.emoji }} {{ food.name }}</button>
+          <button class="plain-link" type="button" @click="navigateTo(`/recipe/${food.id}`)">
+            {{ food.emoji }} {{ food.name }}
+          </button>
           <button class="text-button" type="button" @click="$emit('remove-blacklist', food)">移回</button>
         </article>
       </div>
